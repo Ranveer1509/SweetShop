@@ -1,47 +1,32 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { CartContext } from "../context/cartContextValue";
 
 function Navbar() {
-
-  const { cartItems = [], cartCount, clearCart } = useContext(CartContext);
-
+  const { cartCount, clearCart } = useContext(CartContext);
   const navigate = useNavigate();
   const location = useLocation();
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
-
-  const isLoggedIn = !!token;
+  const isLoggedIn = Boolean(token);
 
   const handleLogout = () => {
-
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-
-    clearCart?.();
-
+    clearCart?.(false);
     navigate("/login");
-
   };
 
   const isActive = (path) =>
-    location.pathname === path || location.pathname.startsWith(path);
+    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
   return (
-
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-
+    <nav className="navbar navbar-expand-lg navbar-dark sticky-top">
       <div className="container">
-
-        {/* Logo */}
-
-        <Link className="navbar-brand fw-bold fs-4" to="/">
-          🍬 SweetShop
+        <Link className="navbar-brand" to="/">
+          SweetShop
         </Link>
-
-
-        {/* Mobile Toggle */}
 
         <button
           className="navbar-toggler"
@@ -52,153 +37,72 @@ function Navbar() {
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
-
           <span className="navbar-toggler-icon"></span>
-
         </button>
 
-
         <div className="collapse navbar-collapse" id="navbarNav">
-
-          {/* Left Menu */}
-
           <ul className="navbar-nav me-auto">
-
             <li className="nav-item">
-
-              <Link
-                className={`nav-link ${isActive("/") ? "active fw-bold" : ""}`}
-                to="/"
-              >
+              <Link className={`nav-link ${isActive("/") ? "active" : ""}`} to="/">
                 Home
               </Link>
-
             </li>
-
             <li className="nav-item">
-
-              <Link
-                className={`nav-link ${isActive("/sweets") ? "active fw-bold" : ""}`}
-                to="/sweets"
-              >
-                Sweets
+              <Link className={`nav-link ${isActive("/sweets") ? "active" : ""}`} to="/sweets">
+                Shop
               </Link>
-
             </li>
-
             {isLoggedIn && (
-
               <li className="nav-item">
-
-                <Link
-                  className={`nav-link ${isActive("/orders") ? "active fw-bold" : ""}`}
-                  to="/orders"
-                >
+                <Link className={`nav-link ${isActive("/orders") ? "active" : ""}`} to="/orders">
                   Orders
                 </Link>
-
               </li>
-
             )}
-
-            {/* Admin Menu */}
-
             {role === "ADMIN" && (
-
               <li className="nav-item">
-
-                <Link
-                  className={`nav-link ${isActive("/admin") ? "active fw-bold" : ""}`}
-                  to="/admin"
-                >
+                <Link className={`nav-link ${isActive("/admin") ? "active" : ""}`} to="/admin">
                   Admin
                 </Link>
-
               </li>
-
             )}
-
           </ul>
 
-
-          {/* Right Menu */}
-
-          <ul className="navbar-nav align-items-center">
-
+          <ul className="navbar-nav align-items-lg-center gap-lg-2">
             {isLoggedIn && (
-
-              <li className="nav-item me-3 position-relative">
-
-                <Link className="nav-link position-relative" to="/cart">
-
-                  🛒 Cart
-
-                  {cartCount > 0 && (
-
-                    <span
-                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                      style={{ fontSize: "0.65rem" }}
-                    >
-
-                      {cartCount}
-
-                    </span>
-
-                  )}
-
+              <li className="nav-item">
+                <Link className="btn btn-cart" to="/cart">
+                  Cart
+                  {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
                 </Link>
-
               </li>
-
             )}
 
-            {!isLoggedIn && (
-
+            {!isLoggedIn ? (
               <>
-                <li className="nav-item me-2">
-
+                <li className="nav-item">
                   <Link className="btn btn-outline-light" to="/login">
                     Login
                   </Link>
-
                 </li>
-
                 <li className="nav-item">
-
                   <Link className="btn btn-warning" to="/register">
                     Register
                   </Link>
-
                 </li>
               </>
-
-            )}
-
-            {isLoggedIn && (
-
+            ) : (
               <li className="nav-item">
-
-                <button
-                  className="btn btn-danger ms-2"
-                  onClick={handleLogout}
-                >
+                <button className="btn btn-outline-light" onClick={handleLogout}>
                   Logout
                 </button>
-
               </li>
-
             )}
-
           </ul>
-
         </div>
-
       </div>
-
     </nav>
-
   );
-
 }
 
 export default Navbar;

@@ -2,114 +2,61 @@ import { Link } from "react-router-dom";
 import defaultSweet from "../assets/sweets/default_sweet.jpg";
 
 function SweetCard({ sweet, image, addToCart }) {
+  const stock = Number(sweet?.quantity ?? sweet?.stock ?? 0);
+  const rating = Number(sweet?.rating || 4.6).toFixed(1);
+  const price = Number(sweet?.price || 0);
+  const originalPrice = Math.round(price * 1.2);
 
-  const fallbackImage = defaultSweet;
-
-  const handleAdd = (e) => {
-
-    e.preventDefault();
-
-    if (!sweet || sweet.quantity === 0) return;
-
-    addToCart(sweet);
-
+  const handleAdd = (event) => {
+    event.preventDefault();
+    if (stock <= 0) return;
+    addToCart(sweet, { imageUrl: image || defaultSweet });
   };
 
-  const price = Number(sweet?.price || 0).toLocaleString();
-
   return (
-
-    <div className="sweet-card card shadow-sm h-100">
-
-      {/* IMAGE */}
-
-      <Link
-        to={`/sweet/${sweet.id}`}
-        className="text-decoration-none text-dark"
-      >
-
+    <article className="sweet-card card h-100">
+      <Link to={`/sweet/${sweet.id}`} className="sweet-card__media">
         <img
-          src={image || fallbackImage}
+          src={image || sweet.imageUrl || defaultSweet}
           alt={sweet.name}
-          className="card-img-top"
-          style={{
-            height: "200px",
-            width: "100%",
-            objectFit: "cover"
-          }}
           loading="lazy"
-          onError={(e) => {
-            e.target.src = fallbackImage;
+          onError={(event) => {
+            event.target.src = defaultSweet;
           }}
         />
-
+        <span className="sweet-card__tag">Fresh today</span>
       </Link>
 
       <div className="card-body d-flex flex-column">
+        <div className="d-flex justify-content-between gap-2 align-items-start">
+          <Link to={`/sweet/${sweet.id}`} className="text-decoration-none text-dark">
+            <h5 className="sweet-card__title">{sweet.name}</h5>
+          </Link>
+          <span className="rating-pill">{rating}</span>
+        </div>
 
-        {/* Name */}
+        <p className="sweet-card__meta">{sweet.category || "Special Sweet"}</p>
 
-        <Link
-          to={`/sweet/${sweet.id}`}
-          className="text-decoration-none text-dark"
-        >
+        <div className="d-flex align-items-baseline gap-2 mb-2">
+          <span className="sweet-card__price">Rs {price.toLocaleString()}</span>
+          <span className="sweet-card__old-price">Rs {originalPrice.toLocaleString()}</span>
+        </div>
 
-          <h5 className="fw-semibold">
-            {sweet.name}
-          </h5>
-
-        </Link>
-
-        {/* Rating */}
-
-        <p className="text-warning mb-1">
-          ⭐ {sweet.rating || 4.5}
+        <p className={`stock-note ${stock <= 5 ? "text-danger" : "text-muted"}`}>
+          {stock > 0 ? `${stock} packs available` : "Out of stock"}
         </p>
 
-        {/* Category */}
-
-        <span className="badge bg-warning text-dark mb-2">
-          {sweet.category}
-        </span>
-
-        {/* Price */}
-
-        <p className="fw-bold text-success fs-5 mb-1">
-          ₹{price}
-        </p>
-
-        {/* Discount */}
-
-        <span className="badge bg-danger mb-2">
-          20% OFF
-        </span>
-
-        {/* Stock */}
-
-        <p className="small text-muted mb-3">
-          Stock: {sweet.quantity}
-        </p>
-
-        {/* Add to Cart */}
-
-        <button
-          className="btn btn-success mt-auto"
-          disabled={sweet.quantity === 0}
-          onClick={handleAdd}
-        >
-
-          {sweet.quantity === 0
-            ? "Out of Stock"
-            : "Add to Cart"}
-
-        </button>
-
+        <div className="d-flex gap-2 mt-auto">
+          <Link className="btn btn-outline-dark flex-fill" to={`/sweet/${sweet.id}`}>
+            View
+          </Link>
+          <button className="btn btn-success flex-fill" disabled={stock <= 0} onClick={handleAdd}>
+            Add
+          </button>
+        </div>
       </div>
-
-    </div>
-
+    </article>
   );
-
 }
 
 export default SweetCard;

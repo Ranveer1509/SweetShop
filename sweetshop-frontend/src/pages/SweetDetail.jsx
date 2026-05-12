@@ -1,249 +1,161 @@
-import { useEffect, useState, useContext } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getSweetById, getAllSweets } from "../api/sweetService";
-import { CartContext } from "../context/CartContext";
+import { useContext, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getAllSweets, getSweetById } from "../api/sweetService";
+import defaultSweet from "../assets/sweets/default_sweet.jpg";
+import { CartContext } from "../context/cartContextValue";
 
 function SweetDetail() {
-
   const { id } = useParams();
-
   const [sweet, setSweet] = useState(null);
   const [related, setRelated] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
-
   const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
+    const loadSweet = async () => {
+      try {
+        setLoading(true);
+        const data = await getSweetById(id);
+        setSweet(data);
+
+        const sweets = await getAllSweets();
+        setRelated(
+          (sweets || [])
+            .filter((item) => item.id !== data.id && item.category === data.category)
+            .slice(0, 4)
+        );
+      } catch (error) {
+        console.error("Failed to load sweet", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadSweet();
   }, [id]);
 
-  const loadSweet = async () => {
-
-    try {
-
-      const data = await getSweetById(id);
-      setSweet(data);
-
-      const res = await getAllSweets();
-      const sweets = res?.data?.content || res?.data || [];
-
-      const relatedSweets = sweets
-        .filter((s) => s.id !== data.id)
-        .slice(0, 4);
-
-      setRelated(relatedSweets);
-
-    } catch (error) {
-
-      console.error("Failed to load sweet", error);
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
-
   const handleQuantityChange = (value) => {
-
     const num = Number(value);
-
+    if (!sweet) return;
     if (num < 1) return setQuantity(1);
     if (num > sweet.quantity) return setQuantity(sweet.quantity);
-
     setQuantity(num);
-
   };
-
 
   const handleAddToCart = () => {
-
-    for (let i = 0; i < quantity; i++) {
-      addToCart(sweet);
+    for (let i = 0; i < quantity; i += 1) {
+      addToCart(sweet, { imageUrl: sweet.imageUrl || defaultSweet });
     }
-
-    toast.success(`${quantity} item(s) added to cart`);
-
+    toast.success(`${quantity} item${quantity > 1 ? "s" : ""} added`);
   };
 
-
   if (loading) {
-
     return (
-      <div className="text-center mt-5">
+      <div className="text-center py-5">
         <div className="spinner-border text-warning"></div>
       </div>
     );
-
   }
 
   if (!sweet) {
-
     return (
-      <div className="container mt-5 text-center">
-        <h4>Sweet not found</h4>
-      </div>
+      <section className="empty-state container">
+        <h1>Sweet not found</h1>
+        <Link className="btn btn-warning" to="/sweets">
+          Back to Shop
+        </Link>
+      </section>
     );
-
   }
 
+  const stock = Number(sweet.quantity || 0);
+  const price = Number(sweet.price || 0);
+  const rating = Number(sweet.rating || 4.6).toFixed(1);
 
   return (
-
-    <div className="container mt-5">
-
-      <div className="row">
-
-        {/* Product Image */}
-
-        <div className="col-md-6 text-center">
-
+    <div className="container section-block">
+      <div className="product-detail">
+        <div className="product-detail__media">
           <img
-            src={
-              sweet.imageUrl ||
-              "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"
-            }
+            src={sweet.imageUrl || defaultSweet}
             alt={sweet.name}
-            className="img-fluid rounded shadow"
-            style={{ maxHeight: "400px", objectFit: "cover" }}
-            onError={(e) =>
-              (e.target.src =
-                "https://via.placeholder.com/400x300?text=Sweet")
-            }
+            onError={(event) => {
+              event.target.src = defaultSweet;
+            }}
           />
-
         </div>
 
-
-        {/* Product Details */}
-
-        <div className="col-md-6">
-
-          <h2 className="mb-2">{sweet.name}</h2>
-
-          <p className="text-warning fs-5">
-            ⭐ {sweet.rating || 4.5} / 5
-          </p>
-
-          <h3 className="text-success">
-            ₹{Number(sweet.price).toLocaleString()}
-            <span className="badge bg-danger ms-3">
-              20% OFF
-            </span>
-          </h3>
-
+        <section className="product-detail__info">
+          <p className="eyebrow">{sweet.category || "Sweet Pack"}</p>
+          <h1>{sweet.name}</h1>
+          <div className="product-rating">
+            <span>{rating}</span>
+            <p>Premium ingredients, packed fresh for delivery.</p>
+          </div>
+          <div className="product-price">
+            Rs {price.toLocaleString()}
+            <span>20% festive value</span>
+          </div>
           <p className="text-muted">
-            Category: <strong>{sweet.category}</strong>
+            A rich Indian sweet made for gifting, family celebrations and daily cravings.
+            Ships in secure food-grade packaging with freshness guidance.
           </p>
 
-          <hr />
-
-          <p>
-            Enjoy delicious traditional Indian sweets made with premium ingredients.
-            Perfect for festivals, celebrations, and gifting.
-          </p>
-
-          <p>
-            <strong>Stock Available:</strong> {sweet.quantity}
-          </p>
-
-
-          {/* Quantity Selector */}
-
-          <div className="d-flex align-items-center mt-3">
-
-            <span className="me-2">Quantity:</span>
-
-            <input
-              type="number"
-              min="1"
-              max={sweet.quantity}
-              value={quantity}
-              onChange={(e)=>handleQuantityChange(e.target.value)}
-              className="form-control"
-              style={{ width: "80px" }}
-            />
-
+          <div className="product-highlights">
+            <span>Fresh batch</span>
+            <span>Gift-ready packaging</span>
+            <span>{stock > 0 ? `${stock} in stock` : "Out of stock"}</span>
           </div>
 
+          <div className="d-flex align-items-center gap-3 mt-4">
+            <label className="fw-semibold" htmlFor="quantity">
+              Quantity
+            </label>
+            <input
+              id="quantity"
+              type="number"
+              min="1"
+              max={stock}
+              value={quantity}
+              onChange={(event) => handleQuantityChange(event.target.value)}
+              className="form-control quantity-input"
+            />
+          </div>
 
-          {/* Add To Cart */}
-
-          <button
-            className="btn btn-success btn-lg mt-4"
-            disabled={sweet.quantity === 0}
-            onClick={handleAddToCart}
-          >
-
-            {sweet.quantity === 0
-              ? "Out of Stock"
-              : "Add to Cart"}
-
-          </button>
-
-        </div>
-
+          <div className="d-flex flex-wrap gap-3 mt-4">
+            <button className="btn btn-success btn-lg" disabled={stock === 0} onClick={handleAddToCart}>
+              Add to Cart
+            </button>
+            <Link className="btn btn-outline-dark btn-lg" to="/cart">
+              Checkout
+            </Link>
+          </div>
+        </section>
       </div>
 
-
-      {/* Related Sweets */}
-
-      <div className="mt-5">
-
-        <h4 className="mb-4">You may also like</h4>
-
-        <div className="row">
-
-          {related.map((s) => (
-
-            <div className="col-md-3 mb-3" key={s.id}>
-
-              <Link
-                to={`/sweet/${s.id}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-
-                <div className="card p-3 shadow-sm h-100">
-
-                  <img
-                    src={
-                      s.imageUrl ||
-                      "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d"
-                    }
-                    className="card-img-top"
-                    style={{ height: "150px", objectFit: "cover" }}
-                  />
-
-                  <div className="card-body text-center">
-
-                    <h6>{s.name}</h6>
-
-                    <p className="text-success fw-bold">
-                      ₹{Number(s.price).toLocaleString()}
-                    </p>
-
-                  </div>
-
+      {related.length > 0 && (
+        <section className="section-block">
+          <div className="section-heading">
+            <p className="eyebrow">More like this</p>
+            <h2>You May Also Like</h2>
+          </div>
+          <div className="related-grid">
+            {related.map((item) => (
+              <Link className="related-item" to={`/sweet/${item.id}`} key={item.id}>
+                <img src={item.imageUrl || defaultSweet} alt={item.name} />
+                <div>
+                  <h3>{item.name}</h3>
+                  <p>Rs {Number(item.price || 0).toLocaleString()}</p>
                 </div>
-
               </Link>
-
-            </div>
-
-          ))}
-
-        </div>
-
-      </div>
-
+            ))}
+          </div>
+        </section>
+      )}
     </div>
-
   );
-
 }
 
 export default SweetDetail;

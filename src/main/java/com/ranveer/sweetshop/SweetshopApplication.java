@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.ranveer.sweetshop.repository.UserRepository;
+import com.ranveer.sweetshop.repository.SweetRepository;
 import com.ranveer.sweetshop.model.User;
 import com.ranveer.sweetshop.model.Role;
+import com.ranveer.sweetshop.model.Sweet;
 
 @SpringBootApplication
 @Slf4j
@@ -45,6 +47,28 @@ public class SweetshopApplication {
 
                 log.info("Default admin user created: username=admin");
             }
+        };
+    }
+
+    @Bean
+    CommandLineRunner seedSweets(SweetRepository repo) {
+
+        return args -> {
+
+            if (repo.count() > 0) {
+                return;
+            }
+
+            repo.save(Sweet.builder().name("Kaju Katli").category("Dry Fruit Sweets").price(80).quantity(25).build());
+            repo.save(Sweet.builder().name("Gulab Jamun").category("Traditional Sweets").price(40).quantity(40).build());
+            repo.save(Sweet.builder().name("Rasgulla").category("Milk Sweets").price(40).quantity(35).build());
+            repo.save(Sweet.builder().name("Jalebi").category("Traditional Sweets").price(35).quantity(50).build());
+            repo.save(Sweet.builder().name("Rasmalai").category("Milk Sweets").price(70).quantity(20).build());
+            repo.save(Sweet.builder().name("Ladoo").category("Festival Specials").price(45).quantity(45).build());
+            repo.save(Sweet.builder().name("Barfi").category("Milk Sweets").price(60).quantity(30).build());
+            repo.save(Sweet.builder().name("Soan Papdi").category("Festival Specials").price(55).quantity(28).build());
+
+            log.info("Sample sweets seeded for local development");
         };
     }
 }

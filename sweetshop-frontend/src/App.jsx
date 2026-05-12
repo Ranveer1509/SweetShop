@@ -1,26 +1,20 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-
-import Sweets from "./pages/Sweets";
-import Cart from "./pages/Cart";
-import Orders from "./pages/Orders";
-import SweetDetail from "./pages/SweetDetail";
-
+import Navbar from "./components/Navbar";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminManageSweets from "./pages/AdminManageSweets";
 import AdminOrders from "./pages/AdminOrders";
-
+import Cart from "./pages/Cart";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
 import OrderSuccess from "./pages/OrderSuccess";
+import Orders from "./pages/Orders";
+import Register from "./pages/Register";
+import SweetDetail from "./pages/SweetDetail";
+import Sweets from "./pages/Sweets";
 
-
-/* Scroll To Top */
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -31,18 +25,8 @@ function ScrollToTop() {
   return null;
 }
 
-
-/* Auth Helpers */
-
-const isAuthenticated = () => !!localStorage.getItem("token");
-
-const isAdmin = () => {
-  const role = localStorage.getItem("role");
-  return role === "ADMIN";
-};
-
-
-/* Protected Routes */
+const isAuthenticated = () => Boolean(localStorage.getItem("token"));
+const isAdmin = () => localStorage.getItem("role") === "ADMIN";
 
 const PrivateRoute = ({ children }) => {
   return isAuthenticated() ? children : <Navigate to="/login" replace />;
@@ -54,54 +38,27 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
-
-/* 404 */
-
 const NotFound = () => (
-  <div className="text-center mt-5">
-    <h2 className="fw-bold">404</h2>
-    <p className="text-muted">Page not found</p>
-  </div>
+  <section className="empty-state container">
+    <p className="eyebrow">404</p>
+    <h2>Page not found</h2>
+    <p className="text-muted">The page you are looking for is not available.</p>
+  </section>
 );
 
-
 function App() {
-
   return (
     <BrowserRouter>
-
       <ScrollToTop />
-
       <Navbar />
 
-      {/* FIXED MAIN WRAPPER */}
-      <main style={{ minHeight: "80vh" }}>
-
+      <main className="app-shell">
         <Routes>
-
-          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
-          {/* User Routes */}
-          <Route
-            path="/sweets"
-            element={
-              <PrivateRoute>
-                <Sweets />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/sweet/:id"
-            element={
-              <PrivateRoute>
-                <SweetDetail />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/sweets" element={<Sweets />} />
+          <Route path="/sweet/:id" element={<SweetDetail />} />
 
           <Route
             path="/cart"
@@ -111,7 +68,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/orders"
             element={
@@ -120,7 +76,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/order-success"
             element={
@@ -130,7 +85,6 @@ function App() {
             }
           />
 
-          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -139,7 +93,6 @@ function App() {
               </AdminRoute>
             }
           />
-
           <Route
             path="/admin/sweets"
             element={
@@ -148,7 +101,6 @@ function App() {
               </AdminRoute>
             }
           />
-
           <Route
             path="/admin/orders"
             element={
@@ -158,15 +110,11 @@ function App() {
             }
           />
 
-          {/* 404 */}
           <Route path="*" element={<NotFound />} />
-
         </Routes>
-
       </main>
 
       <Footer />
-
     </BrowserRouter>
   );
 }

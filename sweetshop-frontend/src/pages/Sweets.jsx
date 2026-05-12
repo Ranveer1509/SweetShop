@@ -1,11 +1,6 @@
-import { useEffect, useState, useContext, useMemo } from "react";
-import { getAllSweets } from "../api/sweetService";
-import { CartContext } from "../context/CartContext";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import SweetCard from "../components/SweetCard";
-
-/* SWEET IMAGES */
-
+import { getAllSweets } from "../api/sweetService";
 import barfi from "../assets/sweets/barfi.jpg";
 import basundi from "../assets/sweets/basundi.jpg";
 import coconutBarfi from "../assets/sweets/coconut_barfi.jpg";
@@ -30,195 +25,157 @@ import pistaLadoo from "../assets/sweets/pista_ladoo.jpg";
 import rabri from "../assets/sweets/rabri.jpg";
 import rasgulla from "../assets/sweets/rasgulla.jpg";
 import rasmalai from "../assets/sweets/rasmalai.jpg";
-import shahiTukda from "../assets/sweets/shahi_tukda.jpg";
 import sandesh from "../assets/sweets/sandesh.jpg";
+import shahiTukda from "../assets/sweets/shahi_tukda.jpg";
 import soanPapdi from "../assets/sweets/soan_papdi.jpg";
-
-/* IMAGE MAP */
+import SweetCard from "../components/SweetCard";
+import { CartContext } from "../context/cartContextValue";
 
 const sweetImages = {
-  "barfi": barfi,
-  "basundi": basundi,
+  barfi,
+  basundi,
   "coconut barfi": coconutBarfi,
   "dry fruit halwa": dryFruitHalwa,
   "dry fruit ladoo": dryFruitLadoo,
-  "ghevar": ghevar,
+  ghevar,
   "gulab jamun": gulabJamun,
-  "jalebi": jalebi,
+  jalebi,
   "kaju apple sweet": kajuApple,
   "kaju katli": kajuKatli,
   "kaju roll": kajuRoll,
-  "kalakand": kalakand,
-  "kheer": kheer,
-  "ladoo": ladoo,
-  "malpua": malpua,
+  kalakand,
+  kheer,
+  ladoo,
+  malpua,
   "milk cake": milkCake,
-  "modak": modak,
+  modak,
   "mysore pak": mysorePak,
   "paneer barfi": paneerBarfi,
-  "peda": peda,
+  peda,
   "pista ladoo": pistaLadoo,
-  "rabri": rabri,
-  "rasgulla": rasgulla,
-  "rasmalai": rasmalai,
+  rabri,
+  rasgulla,
+  rasmalai,
+  sandesh,
   "shahi tukda": shahiTukda,
-  "sandesh": sandesh,
   "soan papdi": soanPapdi
 };
 
 function Sweets() {
-
   const [sweets, setSweets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
+  const [sort, setSort] = useState("featured");
   const [searchParams] = useSearchParams();
-  const initialCategory = searchParams.get("category") || "All";
-
-  const [category, setCategory] = useState(initialCategory);
-
+  const [category, setCategory] = useState(searchParams.get("category") || "All");
   const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
+    const loadSweets = async () => {
+      try {
+        setSweets(await getAllSweets());
+      } catch (error) {
+        console.error("Failed to load sweets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadSweets();
   }, []);
 
-  const loadSweets = async () => {
-
-    try {
-
-      const sweetsData = await getAllSweets();
-
-      setSweets(sweetsData || []);
-
-    } catch (error) {
-
-      console.error("Failed to load sweets:", error);
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
-  /* Categories */
-
   const categories = useMemo(() => {
-    return ["All", ...new Set(sweets.map(s => s.category))];
+    const unique = sweets.map((sweet) => sweet.category).filter(Boolean);
+    return ["All", ...new Set(unique)];
   }, [sweets]);
 
-  /* Filtering */
-
   const filteredSweets = useMemo(() => {
-
-    return sweets.filter((sweet) => {
-
-      const searchMatch = sweet.name
-        ?.toLowerCase()
-        .includes(search.trim().toLowerCase());
-
-      const categoryMatch =
-        category === "All" || sweet.category === category;
-
+    const query = search.trim().toLowerCase();
+    const filtered = sweets.filter((sweet) => {
+      const searchMatch =
+        !query ||
+        sweet.name?.toLowerCase().includes(query) ||
+        sweet.category?.toLowerCase().includes(query);
+      const categoryMatch = category === "All" || sweet.category === category;
       return searchMatch && categoryMatch;
-
     });
 
-  }, [sweets, search, category]);
+    return [...filtered].sort((a, b) => {
+      if (sort === "price-low") return Number(a.price) - Number(b.price);
+      if (sort === "price-high") return Number(b.price) - Number(a.price);
+      if (sort === "rating") return Number(b.rating || 4.5) - Number(a.rating || 4.5);
+      return Number(b.quantity || 0) - Number(a.quantity || 0);
+    });
+  }, [sweets, search, category, sort]);
 
+  const inStockCount = sweets.filter((sweet) => Number(sweet.quantity || 0) > 0).length;
 
   if (loading) {
-
     return (
-      <div className="text-center mt-5">
+      <div className="text-center py-5">
         <div className="spinner-border text-warning"></div>
       </div>
     );
-
   }
 
   return (
-
-    <div className="container mt-4">
-
-      <h2 className="text-center mb-4">🍬 Sweet Shop</h2>
-
-      {/* SEARCH + FILTER */}
-
-      <div className="row mb-4">
-
-        <div className="col-md-6">
-
-          <input
-            className="form-control"
-            placeholder="🔍 Search sweets..."
-            value={search}
-            onChange={(e)=>setSearch(e.target.value)}
-          />
-
+    <div className="container section-block">
+      <div className="shop-toolbar">
+        <div>
+          <p className="eyebrow">Online sweet counter</p>
+          <h1>Shop Sweets</h1>
+          <p className="text-muted mb-0">
+            {sweets.length} products, {inStockCount} available for delivery today.
+          </p>
         </div>
-
-        <div className="col-md-3">
-
-          <select
-            className="form-select"
-            value={category}
-            onChange={(e)=>setCategory(e.target.value)}
-          >
-
-            {categories.map((cat)=>(
-              <option key={cat}>{cat}</option>
-            ))}
-
-          </select>
-
+        <div className="toolbar-stats">
+          <span>Free delivery above Rs 499</span>
+          <span>Secure checkout</span>
         </div>
-
       </div>
 
-      {/* SWEETS GRID */}
+      <div className="filters-bar">
+        <input
+          className="form-control"
+          placeholder="Search sweets or categories"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <select className="form-select" value={category} onChange={(event) => setCategory(event.target.value)}>
+          {categories.map((cat) => (
+            <option key={cat}>{cat}</option>
+          ))}
+        </select>
+        <select className="form-select" value={sort} onChange={(event) => setSort(event.target.value)}>
+          <option value="featured">Featured</option>
+          <option value="rating">Top rated</option>
+          <option value="price-low">Price: low to high</option>
+          <option value="price-high">Price: high to low</option>
+        </select>
+      </div>
 
-      <div className="sweet-grid">
-
-        {filteredSweets.length === 0 ? (
-
-          <div className="text-center mt-5">
-            <h5>No sweets found</h5>
-          </div>
-
-        ) : (
-
-          filteredSweets.map((sweet) => {
-
-            const normalizedName =
-              sweet.name?.toLowerCase().trim();
-
-            const image =
-              sweetImages[normalizedName];
-
+      {filteredSweets.length === 0 ? (
+        <section className="empty-state">
+          <h2>No sweets found</h2>
+          <p className="text-muted">Try another search term or category.</p>
+        </section>
+      ) : (
+        <div className="sweet-grid">
+          {filteredSweets.map((sweet) => {
+            const normalizedName = sweet.name?.toLowerCase().trim();
             return (
-
               <SweetCard
                 key={sweet.id}
                 sweet={sweet}
-                image={image}
+                image={sweetImages[normalizedName]}
                 addToCart={addToCart}
               />
-
             );
-
-          })
-
-        )}
-
-      </div>
-
+          })}
+        </div>
+      )}
     </div>
-
   );
-
 }
 
 export default Sweets;

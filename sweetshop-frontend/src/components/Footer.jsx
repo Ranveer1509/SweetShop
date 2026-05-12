@@ -1,95 +1,38 @@
 import { Link } from "react-router-dom";
 
 function Footer() {
-
   return (
-
-    <footer className="bg-dark text-light mt-5">
-
-      <div className="container py-4">
-
-        <div className="row">
-
-          {/* Brand */}
-
-          <div className="col-md-4 text-center text-md-start">
-
-            <h5>🍬 Sweet Shop</h5>
-
-            <p className="text-muted">
-              Fresh traditional Indian sweets made with love.
-            </p>
-
+    <footer className="site-footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div>
+            <h2>SweetShop</h2>
+            <p>Fresh traditional Indian sweets, curated boxes and simple online checkout.</p>
           </div>
 
-
-          {/* Quick Links */}
-
-          <div className="col-md-4 text-center">
-
-            <h6>Quick Links</h6>
-
-            <ul className="list-unstyled">
-
-              <li>
-                <Link className="text-light text-decoration-none" to="/">
-                  Home
-                </Link>
-              </li>
-
-              <li>
-                <Link className="text-light text-decoration-none" to="/sweets">
-                  Sweets
-                </Link>
-              </li>
-
-              <li>
-                <Link className="text-light text-decoration-none" to="/cart">
-                  Cart
-                </Link>
-              </li>
-
-              <li>
-                <Link className="text-light text-decoration-none" to="/orders">
-                  Orders
-                </Link>
-              </li>
-
-            </ul>
-
+          <div>
+            <h3>Shop</h3>
+            <Link to="/sweets">All Sweets</Link>
+            <Link to="/cart">Cart</Link>
+            <Link to="/orders">Orders</Link>
           </div>
 
-
-          {/* Contact */}
-
-          <div className="col-md-4 text-center text-md-end">
-
-            <h6>Contact</h6>
-
-            <p className="mb-1">📍 India</p>
-            <p className="mb-1">📧 support@sweetshop.com</p>
-            <p>📞 +91 XXXXX XXXXX</p>
-
+          <div>
+            <h3>Support</h3>
+            <p>India delivery</p>
+            <p>support@sweetshop.com</p>
+            <p>+91 90000 00000</p>
           </div>
 
+          <div>
+            <h3>Promise</h3>
+            <p>Fresh batches, secure packaging, transparent totals and easy payment options.</p>
+          </div>
         </div>
-
-        <hr className="border-secondary"/>
-
-        <div className="text-center">
-
-          <p className="mb-0">
-            © 2026 Sweet Shop | Full Stack Project
-          </p>
-
-        </div>
-
+        <div className="footer-bottom">Copyright 2026 SweetShop. Full stack shopping app.</div>
       </div>
-
     </footer>
-
   );
-
 }
 
 export default Footer;
