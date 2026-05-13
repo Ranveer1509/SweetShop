@@ -5,7 +5,7 @@ SweetShop is a full-stack online sweet shopping application built with Spring Bo
 ## Live Demo
 
 - Frontend: https://sweetshop-frontend-u6i5.onrender.com
-- Backend API: https://sweetshop-yhsy.onrender.com/api
+- Backend API: https://sweetshop-yhsy.onrender.com
 
 ## Tech Stack
 
