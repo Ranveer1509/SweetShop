@@ -30,68 +30,57 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
 
-    /* ===============================
-       Main Security Configuration
-    ================================ */
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
 
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
 
-                    /* Public APIs */
+                        /* Public APIs */
 
-                    .requestMatchers(
-                            "/api/auth/**",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/v3/api-docs/**",
-                            "/actuator/**"
-                    ).permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/api",
+                                "/api/auth/**",
+                                "/api/sweets/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/actuator/**"
+                        ).permitAll()
 
-                    /* Public GET access for sweets */
+                        /* Admin/User Protected APIs */
 
-                    .requestMatchers("/api/sweets/**").permitAll()
+                        .anyRequest().authenticated()
+                )
 
-                    /* Everything else requires authentication */
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-                    .anyRequest().authenticated()
-            )
-
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /* ===============================
-       Authentication Manager
-    ================================ */
+    /* Authentication Manager */
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /* ===============================
-       Password Encoder
-    ================================ */
+    /* Password Encoder */
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /* ===============================
-       CORS Configuration
-    ================================ */
+    /* CORS Configuration */
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -99,7 +88,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "https://your-frontend-url.onrender.com"
         ));
 
         configuration.setAllowedMethods(List.of(
@@ -110,10 +100,7 @@ public class SecurityConfig {
                 "OPTIONS"
         ));
 
-        configuration.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type"
-        ));
+        configuration.setAllowedHeaders(List.of("*"));
 
         configuration.setAllowCredentials(true);
 
